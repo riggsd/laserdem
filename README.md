@@ -1,4 +1,4 @@
-# laserdem
+# Laser DEM
 
 Convert Digital Elevation Model (DEM) raster files into layered DXF files for laser cutting 3D topographic models from plywood or acrylic sheets.
 
@@ -70,8 +70,8 @@ Even with this level of geometry simplification, a few tiny pieces still fell th
 
 Each elevation tier generates a DXF file named `tier_NNNN.dxf` with these layers:
 
-- **CUT**   (red)    - The shape to cut for this tier *(high power laser, cutting)*
 - **ETCH**  (green)  - Outline of the next higher tier for alignment *(low power laser, etching)*
+- **CUT**   (red)    - The shape to cut for this tier *(high power laser, cutting)*
 - **BBOX1** (blue)   - Bounding box of the entire DEM
 - **BBOX2** (yellow) - Bounding box of this tier's geometry for material optimization
 

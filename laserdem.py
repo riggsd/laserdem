@@ -169,12 +169,7 @@ def get_tier_elevations(dem: np.ndarray, mask: np.ndarray, interval: float) -> l
     return elevations
 
 
-def create_tier_geometry(
-    dem: np.ndarray,
-    valid_mask: np.ndarray,
-    elevation: float,
-    transform: rasterio.Affine
-) -> PolyGeom | None:
+def create_tier_geometry(dem: np.ndarray, valid_mask: np.ndarray, elevation: float, transform: rasterio.Affine) -> PolyGeom | None:
     """Create polygon for all areas >= elevation within valid data area."""
     tier_mask = (dem >= elevation) & valid_mask
     if not np.any(tier_mask):
@@ -182,10 +177,7 @@ def create_tier_geometry(
     return polygonize_mask(tier_mask, transform)
 
 
-def build_coordinate_transformer(
-    bounds: tuple[float, float, float, float],
-    output_max_mm: float
-) -> Callable[[np.ndarray], np.ndarray]:
+def build_coordinate_transformer(bounds: tuple[float, float, float, float], output_max_mm: float) -> Callable[[np.ndarray], np.ndarray]:
     """
     Build a function that transforms geo coordinates to mm coordinates.
     
@@ -206,26 +198,17 @@ def build_coordinate_transformer(
     return transform_coords
 
 
-def transform_geometry(
-    geom: PolyGeom,
-    transformer: Callable[[np.ndarray], np.ndarray]
-) -> PolyGeom:
+def transform_geometry(geom: PolyGeom,transformer: Callable[[np.ndarray], np.ndarray]) -> PolyGeom:
     """Apply coordinate transformation to a geometry."""
     return shapely_transform(geom, transformer)
 
 
-def simplify_geometry(
-    geom: PolyGeom,
-    tolerance_mm: float
-) -> PolyGeom:
+def simplify_geometry(geom: PolyGeom, tolerance_mm: float) -> PolyGeom:
     """Simplify geometry using Douglas-Peucker algorithm."""
     return geom.simplify(tolerance_mm, preserve_topology=True)
 
 
-def filter_small_polygons(
-    geom: PolyGeom,
-    min_size_mm: float
-) -> PolyGeom | None:
+def filter_small_polygons(geom: PolyGeom, min_size_mm: float) -> PolyGeom | None:
     """
     Remove polygons smaller than a threshold.
     
@@ -250,10 +233,7 @@ def filter_small_polygons(
     return MultiPolygon(kept)
 
 
-def filter_small_holes(
-    geom: PolyGeom,
-    min_size_mm: float
-) -> PolyGeom:
+def filter_small_holes(geom: PolyGeom, min_size_mm: float) -> PolyGeom:
     """
     Remove holes smaller than a threshold.
     
@@ -302,43 +282,28 @@ def write_geometry_to_layer(msp, geom: PolyGeom, layer_name: str):
             write_ring_to_layer(msp, interior.coords, layer_name)
 
 
-def write_dxf(
-    filepath: Path,
-    cut_geom: PolyGeom,
-    etch_geom: PolyGeom | None,
-    bbox_geom: Polygon,
-    tier_bbox_geom: Polygon
-):
+def write_dxf(filepath: Path, cut_geom: PolyGeom, etch_geom: PolyGeom | None, bbox_geom: Polygon, tier_bbox_geom: Polygon):
     """Write a DXF file with CUT layer, optional ETCH layer, BBOX1 (full DEM), and BBOX2 (tier) layers."""
     doc = ezdxf.new("R2010")
     doc.units = ezdxf.units.MM
     msp = doc.modelspace()
 
-    doc.layers.add("CUT", color=1)       # Red
     if etch_geom is not None:
         doc.layers.add("ETCH", color=3)  # Green
+    doc.layers.add("CUT",   color=1)     # Red
     doc.layers.add("BBOX1", color=5)     # Blue
     doc.layers.add("BBOX2", color=2)     # Yellow
 
-    write_geometry_to_layer(msp, cut_geom, "CUT")
     if etch_geom is not None:
-        write_geometry_to_layer(msp, etch_geom, "ETCH")
-    write_geometry_to_layer(msp, bbox_geom, "BBOX1")
+        write_geometry_to_layer(msp, etch_geom,  "ETCH")
+    write_geometry_to_layer(msp, cut_geom,       "CUT")
+    write_geometry_to_layer(msp, bbox_geom,      "BBOX1")
     write_geometry_to_layer(msp, tier_bbox_geom, "BBOX2")
 
     doc.saveas(filepath)
 
 
-def process_dem(
-    dem_path: Path,
-    interval: float,
-    output_max_mm: float,
-    output_dir: Path,
-    simplify_tolerance_mm: float = 0.5,
-    smooth_radius: float = 0.0,
-    min_island_mm: float = 0.0,
-    min_hole_mm: float = 0.0
-):
+def process_dem(dem_path: Path, interval: float, output_max_mm: float, output_dir: Path, simplify_tolerance_mm = 0.5, smooth_radius = 0.0, min_island_mm = 0.0, min_hole_mm = 0.0):
     """Main processing pipeline."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
