@@ -1,0 +1,5 @@
+ezdxf
+numpy
+rasterio
+scipy
+shapely
